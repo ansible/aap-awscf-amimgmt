@@ -1,0 +1,16 @@
+name: "snaptoami"
+description: "Given an AWS EC2 SNAP ID, find the AMI ID associated with it"
+inputs:
+  snap:
+    description: "AWS EC2 SNAP ID"
+    required: true
+  region:
+    description: "AWS Region housing the SNAP"
+    required: true
+    default: "us-east-1"
+outputs:
+  ami:
+    description: "AMI ID associated with this SNAP"
+runs:
+  using: "docker"
+  image: "Dockerfile"

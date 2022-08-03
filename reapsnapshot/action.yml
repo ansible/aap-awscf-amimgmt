@@ -1,0 +1,17 @@
+name: "reapsnapshot"
+description: "Given an aap-awscf-pipeline snapshot, reap all AWS resources associated with it"
+inputs:
+  snapshot:
+    description: "Snapshot from aap-awscf-pipeline"
+    required: true
+    default: "SNAPSHOT-2022-10-18-00-00-00"
+  branch:
+    description: "Branch of aap-awscf-pipeline containing the snapshot"
+    required: true
+    default: "aap-2.2"
+outputs:
+  snaps:
+    description: "JSON list of associated SNAP(s)"
+runs:
+  using: "docker"
+  image: "Dockerfile"
