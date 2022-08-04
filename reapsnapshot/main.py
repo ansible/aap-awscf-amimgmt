@@ -14,12 +14,30 @@ def env_set(env_var, default):
 
 
 def main():
-    my_input = env_set("LOGNAME", "world!")
+  # snapshot_path:
+  #   description: "Path to snapshot to reap"
+  #   required: true
+  #   default: "artifacts/snapshots/SNAPSHOT-2021-08-01-19-23-28"
+  # aws_profile:
+  #   description: 'AWS profile'
+  #   required: true
+  #   default: 'aws-acm-dev10'
+  # aws_access_key_id:
+  #   description: 'AWS access key ID'
+  #   required: true
+  #   default: ''
+  # aws_secret_access_key:
+  #   description: 'AWS secret access key'
+  #   required: true
+  #   default: ''
 
-    my_output = f"Hello {my_input}"
+  snapshot_path = env_set("snapshot_path","")
+  aws_profile = env_set("aws_profile","")
 
-    print(f"::set-output name=myOutput::{my_output}")
+  my_output = f"snapshot_path: {my_input}; aws_profile: {aws_profile}"
+
+  print(f"::set-output name=myOutput::{my_output}")
 
 
 if __name__ == "__main__":
-    main()
+  main()
