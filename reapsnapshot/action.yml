@@ -1,17 +1,26 @@
-name: "reapsnapshot"
+--- 
+name: reapsnapshot
 description: "Given an aap-awscf-pipeline snapshot, reap all AWS resources associated with it"
-inputs:
-  snapshot:
-    description: "Snapshot from aap-awscf-pipeline"
+inputs: 
+  aws_access_key_id: 
+    default: ""
+    description: "AWS access key ID"
     required: true
-    default: "SNAPSHOT-2022-10-18-00-00-00"
-  branch:
-    description: "Branch of aap-awscf-pipeline containing the snapshot"
+  aws_region: 
+    default: 'us-east-2'
+    description: "Default AWS region to address"
     required: true
-    default: "aap-2.2"
-outputs:
-  snaps:
-    description: "JSON list of associated SNAP(s)"
-runs:
-  using: "docker"
-  image: "Dockerfile"
+  aws_secret_access_key: 
+    default: ""
+    description: "AWS secret access key"
+    required: true
+  snapshot_path: 
+    default: "artifacts/snapshots/SNAPSHOT-2021-08-01-19-23-28"
+    description: "Path to snapshot to reap"
+    required: true
+outputs: 
+  log: 
+    description: "Transcript of reaping actions"
+runs: 
+  image: Dockerfile
+  using: docker
