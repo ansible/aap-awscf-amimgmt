@@ -101,7 +101,7 @@ def deleteAMIs(client_map, ami_map):
             results = client_map[region].describe_images(ImageIds=[ami_map[region]])
             try:
                 response = client_map[region].deregister_image(ImageId=ami_map[region], DryRun=False)
-                if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                     print("Deleted, ok")
                 else:
                     print(json.dumps(response, indent=4))
@@ -130,7 +130,7 @@ def deleteSNAPs(client_map, snap_map):
         try:
             print("Looking for {} in region {}:".format(snap_map[region], region))
             response = client_map[region].delete_snapshot(SnapshotId=snap_map[region], DryRun=False)
-            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 print("Deleted, ok")
             else:
                 print(json.dumps(response, indent=4))
@@ -155,12 +155,12 @@ def deleteS3Files(s3_client_map, s3_filename_list):
         # --> positronic-asimov-us-west-2 --> cdk/template-development-2022-07-12-10-44-52.json
         parts = s3_file.split("s3://")
         bucket = parts[1].split("/")[0]
-        start = len(bucket)+s3_file.find(bucket)+1
+        start = len(bucket) + s3_file.find(bucket) + 1
         key = s3_file[start:]
         print("Looking for S3 bucket: {} key: {}".format(bucket, key))
         try:
             response = s3_client_map[os.environ["AWS_DEFAULT_REGION"]].delete_object(Bucket=bucket, Key=key)
-            if response['ResponseMetadata']['HTTPStatusCode'] == 204:
+            if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
                 print("Deleted, ok")
             else:
                 print(json.dumps(response, indent=4))
@@ -212,6 +212,7 @@ def main():
         out_file.write(string_stdout.getvalue())
         out_file.close()
     print(f"::set-output name=log::{string_stdout.getvalue()}")
+
 
 if __name__ == "__main__":
     main()
