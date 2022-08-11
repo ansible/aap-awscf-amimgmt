@@ -18,6 +18,10 @@ inputs:
     default: "artifacts/snapshots/SNAPSHOT-2021-08-01-19-23-28"
     description: "Path to snapshot to reap"
     required: true
+  snapshot_date: 
+    default: "2021-08-01-19-23-28"
+    description: "Just the date portion of the snapshot"
+    required: true
 outputs: 
   log: 
     description: "Transcript of reaping actions"
