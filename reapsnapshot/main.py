@@ -3,6 +3,8 @@ import boto3
 import botocore.exceptions
 import json
 import glob
+from io import StringIO
+import sys
 
 
 def env_set(env_var, default):
@@ -176,6 +178,11 @@ def deleteS3Files(s3_client_map, s3_filename_list):
 
 def main():
 
+    # Reorient stdout to a string so we can capture it
+    tmp_stdout = sys.stdout
+    string_stdout = StringIO()
+    sys.stdout = string_stdout
+
     os.environ["AWS_ACCESS_KEY_ID"] = env_set("INPUT_AWS_ACCESS_KEY_ID", "")
     os.environ["AWS_SECRET_ACCESS_KEY"] = env_set("INPUT_AWS_SECRET_ACCESS_KEY", "")
     os.environ["AWS_DEFAULT_REGION"] = env_set("INPUT_AWS_REGION", "us-east-2")
@@ -199,10 +206,10 @@ def main():
         if success:
             success = deleteS3Files(s3_client_map, s3_filename_list)
 
-    # my_output = f"snapshot_path: {snapshot_path}; aws_profile: {json.dumps(response, indent=4, sort_keys=True, default=str)}"
-
-    # print(f"::set-output name=myOutput::{my_output}")
-
+    # Reorient stdout back to normal, dump out what it was, and return value to action
+    sys.stdout = tmp_stdout
+    print(string_stdout.getvalue())
+    print(f"::set-output name=log::{string_stdout}")
 
 if __name__ == "__main__":
     main()
