@@ -1,0 +1,30 @@
+--- 
+name: reapami
+description: "Given an AMI name, reap associated AMI IDs and SNAPs in all regions specified"
+inputs: 
+  aws_access_key_id: 
+    default: ""
+    description: "AWS access key ID"
+    required: true
+  aws_region: 
+    default: 'us-east-2'
+    description: "Default AWS region to address"
+    required: true
+  aws_secret_access_key: 
+    default: ""
+    description: "AWS secret access key"
+    required: true
+  ami_name: 
+    default: "aoc-aws-deleteme"
+    description: "Name of the AMI to reap"
+    required: true
+  aws_regions:
+    description: "AWS region(s) to target for AMI"
+    required: true
+    default: "us-east-1 us-east-2 us-west-1 us-west-2"
+outputs: 
+  log: 
+    description: "Transcript of reaping actions"
+runs: 
+  image: Dockerfile
+  using: docker

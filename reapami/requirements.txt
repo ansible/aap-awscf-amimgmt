@@ -1,0 +1,7 @@
+pytest==6.2.5
+black
+flake8==4.0.1
+coverage
+tox
+pytest-cov
+boto3
