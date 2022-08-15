@@ -183,6 +183,9 @@ def main():
     string_stdout = StringIO()
     sys.stdout = string_stdout
 
+    # Prime the stdout pump - we seem to lose the first line otherwise
+    print()
+
     os.environ["AWS_ACCESS_KEY_ID"] = env_set("INPUT_AWS_ACCESS_KEY_ID", "")
     os.environ["AWS_SECRET_ACCESS_KEY"] = env_set("INPUT_AWS_SECRET_ACCESS_KEY", "")
     os.environ["AWS_DEFAULT_REGION"] = env_set("INPUT_AWS_REGION", "us-east-2")
