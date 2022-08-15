@@ -124,7 +124,8 @@ def main():
     ec2_client_map = loginEC2Clients(regions)
     ami_map, snap_map = findAMIs(ec2_client_map, ami_name)
     # snap_map = findSNAPs(ec2_client_map, ami_map)
-    print("\nAMI map:\n{}".format(json.dumps(ami_map, indent=4)))
+    print("\nReport for AMI name {}:".format(ami_name))
+    print("AMI map:\n{}".format(json.dumps(ami_map, indent=4)))
     print("SNAP map:\n{}".format(json.dumps(snap_map, indent=4)))
     success = False
     success = deleteAMIs(ec2_client_map, ami_map)
