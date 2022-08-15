@@ -1,5 +1,5 @@
 --- 
-name: reapami
+name: reapamibyname
 description: "Given an AMI name, reap associated AMI IDs and SNAPs in all regions specified"
 inputs: 
   aws_access_key_id: 
