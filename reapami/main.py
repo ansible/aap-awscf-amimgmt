@@ -35,12 +35,12 @@ def findAMIs(client_map, ami_name):
     for region in client_map:
         client = client_map[region]
         try:
-            response = client.describe_images(Filters=[{'Name': 'name', 'Values': [ami_name]}])
+            response = client.describe_images(Filters=[{"Name": "name", "Values": [ami_name]}])
             # print(json.dumps(response, indent=4))
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 for image in response["Images"]:
                     # print(json.dumps(image, indent=4))
-                    element = { region: image['ImageId'] }
+                    element = {region: image["ImageId"]}
                     ami_map.update(element)
                     # print(json.dumps(element, indent=4))
                     for blockDeviceMap in image["BlockDeviceMappings"]:
@@ -120,7 +120,7 @@ def main():
     ami_name = env_set("INPUT_AMI_NAME", "")
     aws_regions = env_set("INPUT_AWS_REGIONS", "")
 
-    regions = aws_regions.split(" ") 
+    regions = aws_regions.split(" ")
     ec2_client_map = loginEC2Clients(regions)
     ami_map, snap_map = findAMIs(ec2_client_map, ami_name)
     # snap_map = findSNAPs(ec2_client_map, ami_map)
