@@ -117,7 +117,7 @@ def main():
     os.environ["AWS_SECRET_ACCESS_KEY"] = env_set("INPUT_AWS_SECRET_ACCESS_KEY", "")
     os.environ["AWS_DEFAULT_REGION"] = env_set("INPUT_AWS_REGION", "us-east-2")
 
-    ami_name = env_set("INPUT_AMI_NAME", "")
+    ami_name = env_set("INPUT_AMI_NAME", "").strip()
     aws_regions = env_set("INPUT_AWS_REGIONS", "")
 
     regions = aws_regions.split(" ")
