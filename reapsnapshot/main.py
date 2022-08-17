@@ -48,14 +48,10 @@ def loginEC2Clients(ami_map):
     return client_map
 
 
-def loginS3Clients(ami_map):
-    client_map = {}
-    for region in ami_map:
-        os.environ["AWS_DEFAULT_REGION"] = region
-        client = boto3.client("s3")
-        element = {region: client}
-        client_map.update(element)
-    return client_map
+def loginS3Client(region):
+    os.environ["AWS_DEFAULT_REGION"] = region
+    client = boto3.client("s3")
+    return client
 
 
 def findSNAPs(client_map, ami_map):
@@ -74,7 +70,7 @@ def findSNAPs(client_map, ami_map):
     return snap_map
 
 
-def findS3Filenames(s3_client_map, snapshot_path, snapshot_date):
+def findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date):
     s3_filename_list = []
     try:
         with open("{}/s3_file_locations.txt".format(snapshot_path), "r") as lambda_file:
@@ -83,7 +79,7 @@ def findS3Filenames(s3_client_map, snapshot_path, snapshot_date):
                 s3_filename_list.append(line.strip())
     except:
         print("Didn't find {}/s3_file_locations.txt; assuming positronic-asimov for S3 bucket.".format(snapshot_path))
-        for region in s3_client_map:
+        for region in ec2_client_map:
             s3_filename_list.append("s3://positronic-asimov-{}/functions/controller-{}.zip".format(region, snapshot_date))
             s3_filename_list.append("s3://positronic-asimov-{}/functions/efs-{}.zip".format(region, snapshot_date))
             s3_filename_list.append("s3://positronic-asimov-{}/functions/rds-{}.zip".format(region, snapshot_date))
@@ -146,7 +142,7 @@ def deleteSNAPs(client_map, snap_map):
     return success
 
 
-def deleteS3Files(s3_client_map, s3_filename_list):
+def deleteS3Files(s3_client, s3_filename_list):
     print("deleteS3Files entry")
     success = True
     for s3_file in s3_filename_list:
@@ -159,7 +155,7 @@ def deleteS3Files(s3_client_map, s3_filename_list):
         key = s3_file[start:]
         print("Looking for S3 bucket: {} key: {}".format(bucket, key))
         try:
-            response = s3_client_map[os.environ["AWS_DEFAULT_REGION"]].delete_object(Bucket=bucket, Key=key)
+            response = s3_client.delete_object(Bucket=bucket, Key=key)
             if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
                 print("Deleted, ok")
             else:
@@ -196,9 +192,9 @@ def main():
     ami_map = findAMIs(snapshot_path, snapshot_date)
     ec2_client_map = loginEC2Clients(ami_map)
     # print("Client map: \n{}".format(json.dumps(ec2_client_map, indent=4)))
-    s3_client_map = loginS3Clients(ami_map)
+    s3_client = loginS3Client(os.environ["AWS_DEFAULT_REGION"])
     snap_map = findSNAPs(ec2_client_map, ami_map)
-    s3_filename_list = findS3Filenames(s3_client_map, snapshot_path, snapshot_date)
+    s3_filename_list = findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date)
     print("AMI map:\n{}".format(json.dumps(ami_map, indent=4)))
     print("SNAP map:\n{}".format(json.dumps(snap_map, indent=4)))
     print("S3 filename list:\n{}".format(json.dumps(s3_filename_list, indent=4)))
@@ -207,7 +203,7 @@ def main():
     if success:
         success = deleteSNAPs(ec2_client_map, snap_map)
         if success:
-            success = deleteS3Files(s3_client_map, s3_filename_list)
+            success = deleteS3Files(s3_client, s3_filename_list)
 
     # Reorient stdout back to normal, dump out what it was, and return value to action
     sys.stdout = tmp_stdout
@@ -215,7 +211,7 @@ def main():
         out_file.write(string_stdout.getvalue())
         out_file.close()
     print(f"::set-output name=log::{string_stdout.getvalue()}")
-
+    exit(success)
 
 if __name__ == "__main__":
     main()
