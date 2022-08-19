@@ -88,7 +88,7 @@ def findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date):
     return s3_filename_list
 
 
-def deleteAMIs(client_map, ami_map):
+def deleteAMIs(client_map, ami_map, dry_run):
     print("deleteAMIs entry")
     success = True
     for region in ami_map:
@@ -96,7 +96,7 @@ def deleteAMIs(client_map, ami_map):
             print("Looking for {} in region {}:".format(ami_map[region], region))
             results = client_map[region].describe_images(ImageIds=[ami_map[region]])
             try:
-                response = client_map[region].deregister_image(ImageId=ami_map[region], DryRun=False)
+                response = client_map[region].deregister_image(ImageId=ami_map[region], DryRun=dry_run)
                 if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                     print("Deleted, ok")
                 else:
@@ -119,13 +119,13 @@ def deleteAMIs(client_map, ami_map):
     return success
 
 
-def deleteSNAPs(client_map, snap_map):
+def deleteSNAPs(client_map, snap_map, dry_run):
     print("deleteSNAPs entry")
     success = True
     for region in snap_map:
         try:
             print("Looking for {} in region {}:".format(snap_map[region], region))
-            response = client_map[region].delete_snapshot(SnapshotId=snap_map[region], DryRun=False)
+            response = client_map[region].delete_snapshot(SnapshotId=snap_map[region], DryRun=dry_run)
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 print("Deleted, ok")
             else:
@@ -188,7 +188,16 @@ def main():
 
     snapshot_path = env_set("INPUT_SNAPSHOT_PATH", "")
     snapshot_date = env_set("INPUT_SNAPSHOT_DATE", "")
+    log_filename = env_set("INPUT_LOG_FILENAME", "reaper.log")
+    resources_filename = env_set("INPUT_RESOURCES_FILENAME", "resources.json")
+    dry_run_string = env_set("INPUT_DRY_RUN", "true")
 
+    if dry_run_string == 'false' or dry_run_string == 'False':
+        dry_run = False
+    else:
+        dry_run = True
+
+    print("dry run: {}".format(dry_run))
     ami_map = findAMIs(snapshot_path, snapshot_date)
     ec2_client_map = loginEC2Clients(ami_map)
     # print("Client map: \n{}".format(json.dumps(ec2_client_map, indent=4)))
@@ -199,19 +208,23 @@ def main():
     print("SNAP map:\n{}".format(json.dumps(snap_map, indent=4)))
     print("S3 filename list:\n{}".format(json.dumps(s3_filename_list, indent=4)))
     success = False
-    success = deleteAMIs(ec2_client_map, ami_map)
+    success = deleteAMIs(ec2_client_map, ami_map, dry_run)
     if success:
-        success = deleteSNAPs(ec2_client_map, snap_map)
-        if success:
+        success = deleteSNAPs(ec2_client_map, snap_map, dry_run)
+        if success and not dry_run:
             success = deleteS3Files(s3_client, s3_filename_list)
-
     # Reorient stdout back to normal, dump out what it was, and return value to action
     sys.stdout = tmp_stdout
-    with open("reaper.log", "w") as out_file:
+    with open(log_filename, "w") as out_file:
         out_file.write(string_stdout.getvalue())
+        out_file.close()
+    resources = {"ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list }
+    with open(resources_filename, "w") as out_file:
+        out_file.write(json.dumps(resources, indent=4))
         out_file.close()
     print(f"::set-output name=log::{string_stdout.getvalue()}")
     exit(not success)
+
 
 if __name__ == "__main__":
     main()
