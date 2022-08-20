@@ -190,9 +190,9 @@ def main():
     snapshot_date = env_set("INPUT_SNAPSHOT_DATE", "")
     log_filename = env_set("INPUT_LOG_FILENAME", "reaper.log")
     resources_filename = env_set("INPUT_RESOURCES_FILENAME", "resources.json")
-    dry_run_string = env_set("INPUT_DRY_RUN", "true")
+    dry_run_string = env_set("INPUT_DRY_RUN", "false")
 
-    if dry_run_string == 'false' or dry_run_string == 'False':
+    if dry_run_string == "false" or dry_run_string == "False":
         dry_run = False
     else:
         dry_run = True
@@ -218,7 +218,7 @@ def main():
     with open(log_filename, "w") as out_file:
         out_file.write(string_stdout.getvalue())
         out_file.close()
-    resources = {"ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list }
+    resources = {"ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list}
     with open(resources_filename, "w") as out_file:
         out_file.write(json.dumps(resources, indent=4))
         out_file.close()
