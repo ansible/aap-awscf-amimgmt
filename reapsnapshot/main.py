@@ -197,7 +197,7 @@ def main():
     else:
         dry_run = True
 
-    print("dry run: {}".format(dry_run))
+    print("Reaper dry run request: {}".format(dry_run))
     ami_map = findAMIs(snapshot_path, snapshot_date)
     ec2_client_map = loginEC2Clients(ami_map)
     # print("Client map: \n{}".format(json.dumps(ec2_client_map, indent=4)))
