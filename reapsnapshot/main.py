@@ -89,7 +89,7 @@ def findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date):
 
 
 def deleteAMIs(client_map, ami_map, dry_run):
-    print("deleteAMIs entry")
+    print("deleteAMIs entry, dry_run is {}".format(dry_run))
     success = True
     for region in ami_map:
         try:
@@ -120,7 +120,7 @@ def deleteAMIs(client_map, ami_map, dry_run):
 
 
 def deleteSNAPs(client_map, snap_map, dry_run):
-    print("deleteSNAPs entry")
+    print("deleteSNAPs entryi, dry_run is {}".format(dry_run))
     success = True
     for region in snap_map:
         try:
