@@ -18,6 +18,10 @@ def env_set(env_var, default):
     else:
         return default
 
+def whoami():
+    client = boto3.client('sts')
+    response = client.get_caller_identity()["Account"]
+    return response
 
 def findAMIs(snapshot_path, snapshot_date):
     ami_map = {}
@@ -198,12 +202,14 @@ def main():
         dry_run = True
 
     print("Reaper dry run request: {}".format(dry_run))
+    aws_account_id = whoami()
     ami_map = findAMIs(snapshot_path, snapshot_date)
     ec2_client_map = loginEC2Clients(ami_map)
     # print("Client map: \n{}".format(json.dumps(ec2_client_map, indent=4)))
     s3_client = loginS3Client(os.environ["AWS_DEFAULT_REGION"])
     snap_map = findSNAPs(ec2_client_map, ami_map)
     s3_filename_list = findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date)
+    print("AWS account ID:\n{}".format(json.dumps(aws_account_id, indent=4)))
     print("AMI map:\n{}".format(json.dumps(ami_map, indent=4)))
     print("SNAP map:\n{}".format(json.dumps(snap_map, indent=4)))
     print("S3 filename list:\n{}".format(json.dumps(s3_filename_list, indent=4)))
@@ -218,7 +224,7 @@ def main():
     with open(log_filename, "w") as out_file:
         out_file.write(string_stdout.getvalue())
         out_file.close()
-    resources = {"ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list}
+    resources = {"account_id": aws_account_id, "ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list}
     with open(resources_filename, "w") as out_file:
         out_file.write(json.dumps(resources, indent=4))
         out_file.close()
