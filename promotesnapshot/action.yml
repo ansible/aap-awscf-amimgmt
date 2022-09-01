@@ -1,6 +1,6 @@
 --- 
-name: reapsnapshot
-description: "Given an aoc-artifacts snapshot, reap all AWS resources associated with it"
+name: promotesnapshot
+description: "Given an aoc-artifacts snapshot, promote it from one status to another"
 inputs: 
   aws_access_key_id: 
     default: ""
@@ -16,27 +16,19 @@ inputs:
     required: true
   snapshot_path: 
     default: "artifacts/snapshots/SNAPSHOT-2021-08-01-19-23-28"
-    description: "Path to snapshot to reap"
+    description: "Path to snapshot to promote"
     required: true
   snapshot_date: 
     default: "2021-08-01-19-23-28"
     description: "Just the date portion of the snapshot"
     required: true
   log_filename:
-    default: "reaper.log"
+    default: "promotion.log"
     required: false
-  resources_filename:
-    default: "resources.json"
-    required: false
-  dry_run:
-    description: 'Report only the resources to be reaped.  If unchecked, deletion will also occur.'
-    required: false
-    default: false
-    type: boolean
 
 outputs: 
   log: 
-    description: "Transcript of reaping actions"
+    description: "Transcript of promotion actions"
 runs: 
   image: Dockerfile
   using: docker

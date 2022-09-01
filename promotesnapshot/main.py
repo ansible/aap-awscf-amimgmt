@@ -74,105 +74,57 @@ def findSNAPs(client_map, ami_map):
     return snap_map
 
 
-def findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date):
-    s3_filename_list = []
-    try:
-        with open("{}/s3_file_locations.txt".format(snapshot_path), "r") as lambda_file:
-            lambda_text = lambda_file.readlines()
-            for line in lambda_text:
-                s3_filename_list.append(line.strip())
-    except:
-        print("Didn't find {}/s3_file_locations.txt; assuming positronic-asimov for S3 bucket.".format(snapshot_path))
-        for region in ec2_client_map:
-            s3_filename_list.append("s3://positronic-asimov-{}/functions/controller-{}.zip".format(region, snapshot_date))
-            s3_filename_list.append("s3://positronic-asimov-{}/functions/efs-{}.zip".format(region, snapshot_date))
-            s3_filename_list.append("s3://positronic-asimov-{}/functions/rds-{}.zip".format(region, snapshot_date))
-            s3_filename_list.append("s3://positronic-asimov-{}/cdk/template-production-{}.json".format(region, snapshot_date))
-            s3_filename_list.append("s3://positronic-asimov-{}/cdk/template-development-{}.json".format(region, snapshot_date))
-    return s3_filename_list
-
-
-def deleteAMIs(client_map, ami_map, dry_run):
-    print("deleteAMIs entry, dry_run is {}".format(dry_run))
+def retagAMIs(client_map, ami_map, new_tag):
+    print("retagAMIs entry, retagging to {}".format(new_tag))
     success = True
     for region in ami_map:
         try:
             print("Looking for {} in region {}:".format(ami_map[region], region))
             results = client_map[region].describe_images(ImageIds=[ami_map[region]])
             try:
-                response = client_map[region].deregister_image(ImageId=ami_map[region], DryRun=dry_run)
+                response = client_map[region].create_tags(DryRun=False,
+                    Resources=[ ami_map[region] ], Tags=[ { 'Key': 'aap-awscf-promotion', 'Value': 'deployed' }, ])
                 if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-                    print("Deleted, ok")
+                    print("Updated, ok")
                 else:
                     print(json.dumps(response, indent=4))
             except botocore.exceptions.ClientError as err2:
-                if err2.response["Error"]["Code"] == "DryRunOperation":
-                    print("Dry run, ok")
-                elif err2.response["Error"]["Code"] == "InvalidAMIID.Unavailable":
-                    print("Already gone, ok")
-                else:
-                    print("Try of deregister_image error: {}".format(err2))
-                    success = False
+              if err2.response["Error"]["Code"] == "DryRunOperation":
+                print("Dry run, ok")
+              else:
+                print("Try of create_tag error: {}".format(err2))
+                success = False
         except botocore.exceptions.ClientError as err1:
             if err1.response["Error"]["Code"] == "InvalidAMIID.NotFound":
                 print("AMI no longer present; continuing.")
             else:
                 print("Try of describe_images error: {}\n{}".format(json.dumps(err1.response, indent=4), err1))
                 success = False
-    print("deleteAMIs exit, returning {}".format(success))
+    print("retagAMIs exit, returning {}".format(success))
     return success
 
 
-def deleteSNAPs(client_map, snap_map, dry_run):
-    print("deleteSNAPs entry, dry_run is {}".format(dry_run))
+def retagSNAPs(client_map, snap_map, new_tag):
+    print("retagSNAPS entry, retagging to {}".format(new_tag))
     success = True
     for region in snap_map:
         try:
             print("Looking for {} in region {}:".format(snap_map[region], region))
-            response = client_map[region].delete_snapshot(SnapshotId=snap_map[region], DryRun=dry_run)
+            response = client_map[region].create_tags(DryRun=False,
+                Resources=[ snap_map[region] ], Tags=[ { 'Key': 'aap-awscf-promotion', 'Value': 'deployed' }, ])
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-                print("Deleted, ok")
+                print("Updated, ok")
             else:
                 print(json.dumps(response, indent=4))
         except botocore.exceptions.ClientError as err2:
             if err2.response["Error"]["Code"] == "DryRunOperation":
                 print("Dry run, ok")
             elif err2.response["Error"]["Code"] == "InvalidSnapshot.NotFound":
-                print("Already gone, ok")
+                print("Seems to be gone, guessing ok")
             else:
-                print("Try of delete_snapshot error: {}\n{}".format(json.dumps(err.response, indent=4), err1))
+                print("Try of create_tags error: {}\n{}".format(json.dumps(err.response, indent=4), err1))
                 success = False
-    print("deleteSNAPs exit, returning {}".format(success))
-    return success
-
-
-def deleteS3Files(s3_client, s3_filename_list):
-    print("deleteS3Files entry")
-    success = True
-    for s3_file in s3_filename_list:
-        # Break up an S3 URI into usable bits i.e.
-        # s3://positronic-asimov-us-west-2/cdk/template-development-2022-07-12-10-44-52.json
-        # --> positronic-asimov-us-west-2 --> cdk/template-development-2022-07-12-10-44-52.json
-        parts = s3_file.split("s3://")
-        bucket = parts[1].split("/")[0]
-        start = len(bucket) + s3_file.find(bucket) + 1
-        key = s3_file[start:]
-        print("Looking for S3 bucket: {} key: {}".format(bucket, key))
-        try:
-            response = s3_client.delete_object(Bucket=bucket, Key=key)
-            if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
-                print("Deleted, ok")
-            else:
-                print(json.dumps(response, indent=4))
-        except botocore.exceptions.ClientError as err1:
-            if err1.response["Error"]["Code"] == "404":
-                print("Missing, ok")
-            elif err1.response["Error"]["Code"] == "NoSuchBucket":
-                print("Entire bucket missing, ok")
-            else:
-                success = False
-                print("Try of delete_object {}/{} error: {}\n{}".format(bucket, key, json.dumps(err1.response, indent=4), err1))
-    print("deleteS3Files exit, returning {}".format(success))
+    print("retagSNAPs exit, returning {}".format(success))
     return success
 
 
@@ -192,41 +144,25 @@ def main():
 
     snapshot_path = env_set("INPUT_SNAPSHOT_PATH", "")
     snapshot_date = env_set("INPUT_SNAPSHOT_DATE", "")
-    log_filename = env_set("INPUT_LOG_FILENAME", "reaper.log")
-    resources_filename = env_set("INPUT_RESOURCES_FILENAME", "resources.json")
-    dry_run_string = env_set("INPUT_DRY_RUN", "false")
+    log_filename = env_set("INPUT_LOG_FILENAME", "promotion.log")
 
-    if dry_run_string == "false" or dry_run_string == "False":
-        dry_run = False
-    else:
-        dry_run = True
-
-    print("Reaper dry run request: {}".format(dry_run))
     aws_account_id = whoami()
     ami_map = findAMIs(snapshot_path, snapshot_date)
     ec2_client_map = loginEC2Clients(ami_map)
     # print("Client map: \n{}".format(json.dumps(ec2_client_map, indent=4)))
     s3_client = loginS3Client(os.environ["AWS_DEFAULT_REGION"])
     snap_map = findSNAPs(ec2_client_map, ami_map)
-    s3_filename_list = findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date)
     print("AWS account ID:\n{}".format(json.dumps(aws_account_id, indent=4)))
     print("AMI map:\n{}".format(json.dumps(ami_map, indent=4)))
     print("SNAP map:\n{}".format(json.dumps(snap_map, indent=4)))
-    print("S3 filename list:\n{}".format(json.dumps(s3_filename_list, indent=4)))
     success = False
-    success = deleteAMIs(ec2_client_map, ami_map, dry_run)
+    success = retagAMIs(ec2_client_map, ami_map, "deployed")
     if success:
-        success = deleteSNAPs(ec2_client_map, snap_map, dry_run)
-        if success and not dry_run:
-            success = deleteS3Files(s3_client, s3_filename_list)
+        success = retagSNAPs(ec2_client_map, snap_map, "deployed")
     # Reorient stdout back to normal, dump out what it was, and return value to action
     sys.stdout = tmp_stdout
     with open(log_filename, "w") as out_file:
         out_file.write(string_stdout.getvalue())
-        out_file.close()
-    resources = {"account_id": aws_account_id, "ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list}
-    with open(resources_filename, "w") as out_file:
-        out_file.write(json.dumps(resources, indent=4))
         out_file.close()
     print(f"::set-output name=log::{string_stdout.getvalue()}")
     exit(not success)
