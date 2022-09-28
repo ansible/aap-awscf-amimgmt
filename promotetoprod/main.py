@@ -73,7 +73,7 @@ def main():
 
     snapshot_path = env_set("INPUT_SNAPSHOT_PATH", "")
     snapshot_date = env_set("INPUT_SNAPSHOT_DATE", "")
-    log_filename = env_set("INPUT_LOG_FILENAME", "promotetoprod.log")
+    log_filename = env_set("INPUT_LOG_FILENAME", "prod-promote.log")
     dev_region = env_set("INPUT_AWS_DEV_ENDPOINT_REGION", "us-east-2")
     prod_region = env_set("INPUT_AWS_PROD_ENDPOINT_REGION", "us-east-2")
     prod_s3_bucket = env_set("INPUT_AWS_PROD_S3_BUCKET", "aap-aoc-code-assets")
