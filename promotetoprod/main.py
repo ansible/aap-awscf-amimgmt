@@ -86,7 +86,7 @@ def main():
         out_file.write(aws_creds_text)
         out_file.close()
 
-    # moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_s3_bucket)
+    moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_s3_bucket)
 
     success = False
     # Reorient stdout back to normal, dump out what it was, and return value to action
