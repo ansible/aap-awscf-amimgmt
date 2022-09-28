@@ -67,7 +67,7 @@ def main():
     sys.stdout = string_stdout
 
     # Assumes a credentials file has been laid down thusly
-    os.environ["AWS_SHARED_CREDENTIALS_FILE"] = "~/.aws/credentials"
+    os.environ["AWS_SHARED_CREDENTIALS_FILE"] = "{}/.aws/credentials".format(os.getcwd())
 
     # Prime the stdout pump - we seem to lose the first line otherwise
     print()
@@ -78,7 +78,7 @@ def main():
     dev_region = env_set("INPUT_AWS_DEV_ENDPOINT_REGION", "us-east-2")
     prod_region = env_set("INPUT_AWS_PROD_ENDPOINT_REGION", "us-east-2")
     prod_s3_bucket = env_set("INPUT_AWS_PROD_S3_BUCKET", "aap-aoc-code-assets")
-    aws_creds_text = base64.b64decode(env_set("INPUT_AWS_SHARED_CREDS_BASE64", "")).decode('utf-8')
+    aws_creds_text = base64.b64decode(os.environ["INPUT_AWS_SHARED_CREDS_BASE64"]).decode('utf-8')
     creds_path = "{}/.aws".format(os.getcwd())
     os.mkdir(creds_path)
     creds_file = "{}/credentials".format(creds_path)
