@@ -1,0 +1,34 @@
+--- 
+name: promotetoprod
+description: "Given an aoc-artifacts snapshot, copy it from one account to another"
+inputs: 
+  aws_dev_endpoint_region: 
+    default: 'us-east-2'
+    description: 'AWS source region'
+    required: true
+  aws_prod_endpoint_region: 
+    default: 'us-east-2'
+    description: 'AWS destination region'
+    required: true
+  aws_prod_s3_bucket: 
+    default: 'aap-aoc-code-assets'
+    description: 'AWS destination S3 bucket'
+    required: true
+  snapshot_path: 
+    default: "artifacts/snapshots/SNAPSHOT-2021-08-01-19-23-28"
+    description: "Path to snapshot to promote"
+    required: true
+  snapshot_date: 
+    default: "2021-08-01-19-23-28"
+    description: "Just the date portion of the snapshot"
+    required: true
+  log_filename:
+    default: "promotetoprod.log"
+    required: false
+
+outputs: 
+  log: 
+    description: "Transcript of promotion actions"
+runs: 
+  image: Dockerfile
+  using: docker
