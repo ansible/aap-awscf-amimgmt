@@ -22,6 +22,10 @@ inputs:
     default: "2021-08-01-19-23-28"
     description: "Just the date portion of the snapshot"
     required: true
+  aws_shared_creds_base64:
+    default: ""
+    description: "base64-encoded AWS credentials"
+    required: true
   log_filename:
     default: "promotetoprod.log"
     required: false

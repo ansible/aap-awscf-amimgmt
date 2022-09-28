@@ -5,7 +5,7 @@ import json
 import glob
 from io import StringIO
 import sys
-
+import base64
 
 def env_set(env_var, default):
     if env_var in os.environ:
@@ -78,8 +78,15 @@ def main():
     dev_region = env_set("INPUT_AWS_DEV_ENDPOINT_REGION", "us-east-2")
     prod_region = env_set("INPUT_AWS_PROD_ENDPOINT_REGION", "us-east-2")
     prod_s3_bucket = env_set("INPUT_AWS_PROD_S3_BUCKET", "aap-aoc-code-assets")
+    aws_creds_text = base64.b64decode(env_set("INPUT_AWS_SHARED_CREDS_BASE64", "")).decode('utf-8')
+    creds_path = "{}/.aws".format(os.getcwd())
+    os.mkdir(creds_path)
+    creds_file = "{}/credentials".format(creds_path)
+    with open(creds_file, "w") as out_file:
+        out_file.write(aws_creds_text)
+        out_file.close()
 
-    moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_s3_bucket)
+    # moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_s3_bucket)
 
     success = False
     # Reorient stdout back to normal, dump out what it was, and return value to action
