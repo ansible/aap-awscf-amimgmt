@@ -81,9 +81,9 @@ def main():
     creds_path = "{}/.aws".format(os.getcwd())
     os.mkdir(creds_path)
     creds_file = "{}/credentials".format(creds_path)
-    #with open(creds_file, "w") as out_file:
-    #    out_file.write(aws_creds_text)
-    #    out_file.close()
+    with open(creds_file, "w") as out_file:
+        out_file.write(aws_creds_text)
+        out_file.close()
 
     success = moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_s3_bucket)
 
