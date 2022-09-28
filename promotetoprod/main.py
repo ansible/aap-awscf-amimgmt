@@ -7,6 +7,7 @@ from io import StringIO
 import sys
 import base64
 
+
 def env_set(env_var, default):
     if env_var in os.environ:
         return os.environ[env_var]
@@ -18,10 +19,6 @@ def env_set(env_var, default):
     else:
         return default
 
-def whoami():
-    client = boto3.client('sts')
-    response = client.get_caller_identity()["Account"]
-    return response
 
 def moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_bucket):
     return_code = False
@@ -84,9 +81,9 @@ def main():
     creds_path = "{}/.aws".format(os.getcwd())
     os.mkdir(creds_path)
     creds_file = "{}/credentials".format(creds_path)
-    with open(creds_file, "w") as out_file:
-        out_file.write(aws_creds_text)
-        out_file.close()
+    #with open(creds_file, "w") as out_file:
+    #    out_file.write(aws_creds_text)
+    #    out_file.close()
 
     success = moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_s3_bucket)
 
