@@ -89,7 +89,7 @@ def main():
 
     # Reorient stdout back to normal, dump out what it was, and return value to action
     sys.stdout = tmp_stdout
-    with open(log_filename, "w") as out_file:
+    with open(log_filename, "a") as out_file:
         out_file.write(string_stdout.getvalue())
         out_file.close()
     print(f"::set-output name=log::{string_stdout.getvalue()}")
