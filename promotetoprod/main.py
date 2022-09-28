@@ -33,6 +33,7 @@ def moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_bucket):
             resource_map = json.loads(resource_text)
     except:
         print("Didn't find {}/resources-{}.json!".format(snapshot_path, snapshot_date))
+        exit(False)
     s3_files = resource_map["s3_files"]
     dev_client = dev_session.client("s3")
     prod_client = prod_session.client("s3")
