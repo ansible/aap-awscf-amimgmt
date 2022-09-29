@@ -1,8 +1,6 @@
 import os
 import boto3
-import botocore.exceptions
 import json
-import glob
 from io import StringIO
 import sys
 import base64
@@ -22,8 +20,8 @@ def env_set(env_var, default):
 
 def moveS3s(snapshot_path, snapshot_date, dev_region, prod_region, prod_bucket):
     return_code = False
-    dev_session = boto3.Session(profile_name='dev', region_name=dev_region)
-    prod_session = boto3.Session(profile_name='prod', region_name=prod_region)
+    dev_session = boto3.Session(profile_name="dev", region_name=dev_region)
+    prod_session = boto3.Session(profile_name="prod", region_name=prod_region)
     resource_map = {}
     try:
         with open("{}/resources-{}.json".format(snapshot_path, snapshot_date), "r") as s3_file:
@@ -77,7 +75,7 @@ def main():
     dev_region = env_set("INPUT_AWS_DEV_ENDPOINT_REGION", "us-east-2")
     prod_region = env_set("INPUT_AWS_PROD_ENDPOINT_REGION", "us-east-2")
     prod_s3_bucket = env_set("INPUT_AWS_PROD_S3_BUCKET", "aap-aoc-code-assets")
-    aws_creds_text = base64.b64decode(os.environ["INPUT_AWS_SHARED_CREDS_BASE64"]).decode('utf-8')
+    aws_creds_text = base64.b64decode(os.environ["INPUT_AWS_SHARED_CREDS_BASE64"]).decode("utf-8")
     creds_path = "{}/.aws".format(os.getcwd())
     os.mkdir(creds_path)
     creds_file = "{}/credentials".format(creds_path)
