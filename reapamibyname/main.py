@@ -2,7 +2,6 @@ import os
 import boto3
 import botocore.exceptions
 import json
-import glob
 from io import StringIO
 import sys
 
@@ -58,7 +57,7 @@ def deleteAMIs(client_map, ami_map):
     for region in ami_map:
         try:
             print("Looking for {} in region {}:".format(ami_map[region], region))
-            results = client_map[region].describe_images(ImageIds=[ami_map[region]])
+            client_map[region].describe_images(ImageIds=[ami_map[region]])
             try:
                 response = client_map[region].deregister_image(ImageId=ami_map[region], DryRun=False)
                 if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
@@ -100,7 +99,7 @@ def deleteSNAPs(client_map, snap_map):
             elif err2.response["Error"]["Code"] == "InvalidSnapshot.NotFound":
                 print("Already gone, ok")
             else:
-                print("Try of delete_snapshot error: {}\n{}".format(json.dumps(err.response, indent=4), err1))
+                print("Try of delete_snapshot error: {}\n{}".format(json.dumps(err2.response, indent=4), err2))
                 success = False
     print("deleteSNAPs exit, returning {}".format(success))
     return success
