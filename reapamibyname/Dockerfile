@@ -1,4 +1,4 @@
-FROM quay.io/jitesoft/alpine:latest AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest  AS builder
 ADD . /app
 WORKDIR /app
 
