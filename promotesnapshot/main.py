@@ -18,10 +18,12 @@ def env_set(env_var, default):
     else:
         return default
 
+
 def whoami():
-    client = boto3.client('sts')
+    client = boto3.client("sts")
     response = client.get_caller_identity()["Account"]
     return response
+
 
 def findAMIs(snapshot_path, snapshot_date):
     ami_map = {}
@@ -82,18 +84,23 @@ def retagAMIs(client_map, ami_map, new_tag):
             print("Looking for {} in region {}:".format(ami_map[region], region))
             results = client_map[region].describe_images(ImageIds=[ami_map[region]])
             try:
-                response = client_map[region].create_tags(DryRun=False,
-                    Resources=[ ami_map[region] ], Tags=[ { 'Key': 'aap-awscf-promotion', 'Value': 'deployed' }, ])
+                response = client_map[region].create_tags(
+                    DryRun=False,
+                    Resources=[ami_map[region]],
+                    Tags=[
+                        {"Key": "aap-awscf-promotion", "Value": "deployed"},
+                    ],
+                )
                 if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                     print("Updated, ok")
                 else:
                     print(json.dumps(response, indent=4))
             except botocore.exceptions.ClientError as err2:
-              if err2.response["Error"]["Code"] == "DryRunOperation":
-                print("Dry run, ok")
-              else:
-                print("Try of create_tag error: {}".format(err2))
-                success = False
+                if err2.response["Error"]["Code"] == "DryRunOperation":
+                    print("Dry run, ok")
+                else:
+                    print("Try of create_tag error: {}".format(err2))
+                    success = False
         except botocore.exceptions.ClientError as err1:
             if err1.response["Error"]["Code"] == "InvalidAMIID.NotFound":
                 print("AMI no longer present; continuing.")
@@ -110,8 +117,13 @@ def retagSNAPs(client_map, snap_map, new_tag):
     for region in snap_map:
         try:
             print("Looking for {} in region {}:".format(snap_map[region], region))
-            response = client_map[region].create_tags(DryRun=False,
-                Resources=[ snap_map[region] ], Tags=[ { 'Key': 'aap-awscf-promotion', 'Value': 'deployed' }, ])
+            response = client_map[region].create_tags(
+                DryRun=False,
+                Resources=[snap_map[region]],
+                Tags=[
+                    {"Key": "aap-awscf-promotion", "Value": "deployed"},
+                ],
+            )
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 print("Updated, ok")
             else:

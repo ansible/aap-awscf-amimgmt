@@ -18,10 +18,12 @@ def env_set(env_var, default):
     else:
         return default
 
+
 def whoami():
-    client = boto3.client('sts')
+    client = boto3.client("sts")
     response = client.get_caller_identity()["Account"]
     return response
+
 
 def findAMIs(snapshot_path, snapshot_date):
     ami_map = {}
