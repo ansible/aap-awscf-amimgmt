@@ -230,7 +230,6 @@ def main():
     with open(resources_filename, "w") as out_file:
         out_file.write(json.dumps(resources, indent=4))
         out_file.close()
-    print(f"::set-output name=log::{string_stdout.getvalue()}")
     exit(not success)
 
 
