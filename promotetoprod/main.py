@@ -90,7 +90,6 @@ def main():
     with open(log_filename, "a") as out_file:
         out_file.write(string_stdout.getvalue())
         out_file.close()
-    print(f"::set-output name=log::{string_stdout.getvalue()}")
     exit(not success)
 
 

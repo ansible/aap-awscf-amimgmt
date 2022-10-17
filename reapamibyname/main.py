@@ -136,7 +136,6 @@ def main():
     with open("reaper.log", "w") as out_file:
         out_file.write(string_stdout.getvalue())
         out_file.close()
-    print(f"::set-output name=log::{string_stdout.getvalue()}")
 
 
 if __name__ == "__main__":
