@@ -221,11 +221,12 @@ def main():
         success = deleteSNAPs(ec2_client_map, snap_map, dry_run)
         if success and not dry_run:
             success = deleteS3Files(s3_client, s3_filename_list)
-    # Reorient stdout back to normal, dump out what it was, and return value to action
+    # Reorient stdout back to normal, write it to the log file, and dump out what it was
     sys.stdout = tmp_stdout
     with open(log_filename, "w") as out_file:
         out_file.write(string_stdout.getvalue())
         out_file.close()
+    print(string_stdout.getvalue())
     resources = {"account_id": aws_account_id, "ami_map": ami_map, "snap_map": snap_map, "s3_files": s3_filename_list}
     with open(resources_filename, "w") as out_file:
         out_file.write(json.dumps(resources, indent=4))
