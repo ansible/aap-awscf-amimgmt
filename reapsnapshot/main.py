@@ -76,7 +76,7 @@ def findSNAPs(client_map, ami_map):
     return snap_map
 
 
-def findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date):
+def findS3Filenames(ec2_client_map, snapshot_path, snapshot_date):
     s3_filename_list = []
     try:
         with open("{}/s3_file_locations.txt".format(snapshot_path), "r") as lambda_file:
@@ -148,24 +148,39 @@ def deleteSNAPs(client_map, snap_map, dry_run):
     return success
 
 
-def deleteS3Files(s3_client, s3_filename_list):
-    print("deleteS3Files entry")
+def deleteS3Files(s3_filename_list, dry_run):
+    print("deleteS3Files entry, dry_run is {}".format(dry_run))
     success = True
+    region = ""
     for s3_file in s3_filename_list:
         # Break up an S3 URI into usable bits i.e.
         # s3://positronic-asimov-us-west-2/cdk/template-development-2022-07-12-10-44-52.json
         # --> positronic-asimov-us-west-2 --> cdk/template-development-2022-07-12-10-44-52.json
         parts = s3_file.split("s3://")
         bucket = parts[1].split("/")[0]
+        bucket_array = bucket.split("-")
+        num_bucket_bits = len(bucket_array)
+        new_region = "{}-{}-{}".format(bucket_array[num_bucket_bits - 3],bucket_array[num_bucket_bits - 2],bucket_array[num_bucket_bits - 1])
+        if new_region != region:
+            region = new_region
+            print("New S3 region: {}".format(new_region))
+            s3_client = loginS3Client(new_region)
         start = len(bucket) + s3_file.find(bucket) + 1
         key = s3_file[start:]
-        print("Looking for S3 bucket: {} key: {}".format(bucket, key))
+        print("Looking for S3 bucket: {} key: {} in region: {}".format(bucket, key, region))
         try:
-            response = s3_client.delete_object(Bucket=bucket, Key=key)
-            if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
-                print("Deleted, ok")
+            if dry_run:
+                response = s3_client.list_objects(Bucket=bucket)
+                if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+                    print("Listed, ok")
+                else:
+                    print(json.dumps(response, indent=4, sort_keys=True, default=str))
             else:
-                print(json.dumps(response, indent=4))
+                response = s3_client.delete_object(Bucket=bucket, Key=key)
+                if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
+                    print("Deleted, ok")
+                else:
+                    print(json.dumps(response, indent=4, sort_keys=True, default=str))
         except botocore.exceptions.ClientError as err1:
             if err1.response["Error"]["Code"] == "404":
                 print("Missing, ok")
@@ -173,7 +188,7 @@ def deleteS3Files(s3_client, s3_filename_list):
                 print("Entire bucket missing, ok")
             else:
                 success = False
-                print("Try of delete_object {}/{} error: {}\n{}".format(bucket, key, json.dumps(err1.response, indent=4), err1))
+                print("Try of delete_object {}/{} error: {}\n{}".format(bucket, key, json.dumps(err1.response, indent=4, sort_keys=True, default=str), err1))
     print("deleteS3Files exit, returning {}".format(success))
     return success
 
@@ -208,9 +223,8 @@ def main():
     ami_map = findAMIs(snapshot_path, snapshot_date)
     ec2_client_map = loginEC2Clients(ami_map)
     # print("Client map: \n{}".format(json.dumps(ec2_client_map, indent=4)))
-    s3_client = loginS3Client(os.environ["AWS_DEFAULT_REGION"])
     snap_map = findSNAPs(ec2_client_map, ami_map)
-    s3_filename_list = findS3Filenames(s3_client, ec2_client_map, snapshot_path, snapshot_date)
+    s3_filename_list = findS3Filenames(ec2_client_map, snapshot_path, snapshot_date)
     print("AWS account ID:\n{}".format(json.dumps(aws_account_id, indent=4)))
     print("AMI map:\n{}".format(json.dumps(ami_map, indent=4)))
     print("SNAP map:\n{}".format(json.dumps(snap_map, indent=4)))
@@ -219,8 +233,8 @@ def main():
     success = deleteAMIs(ec2_client_map, ami_map, dry_run)
     if success:
         success = deleteSNAPs(ec2_client_map, snap_map, dry_run)
-        if success and not dry_run:
-            success = deleteS3Files(s3_client, s3_filename_list)
+        if success:
+            success = deleteS3Files(s3_filename_list, dry_run)
     # Reorient stdout back to normal, write it to the log file, and dump out what it was
     sys.stdout = tmp_stdout
     with open(log_filename, "w") as out_file:
