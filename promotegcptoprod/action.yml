@@ -1,0 +1,23 @@
+--- 
+name: promotegcptoprod
+description: "Given an aap-gcpdm-standalone snapshot, copy assets from one account to another"
+inputs: 
+  snapshot_path: 
+    default: "artifacts/snapshots/SNAPSHOT-2022-09-13-17-11-20"
+    description: "Path to snapshot to promote"
+    required: true
+  snapshot_date: 
+    default: "2022-09-13-17-11-20"
+    description: "Just the date portion of the snapshot"
+    required: true
+  gcp_prod_storage_bucket:
+    default: "redhat-products/ansible"
+    description: "The GCP storage bucket for production zip files"
+    required: true
+
+outputs:
+  log:
+    description: "Transcript of promotion actions"
+runs: 
+  image: Dockerfile
+  using: docker
