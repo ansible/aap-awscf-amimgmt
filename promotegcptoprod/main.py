@@ -5,10 +5,6 @@ import sys
 import base64
 import subprocess
 
-from google.api_core.extended_operation import ExtendedOperation
-from google.cloud import compute_v1
-from google.cloud import storage
-
 
 def env_set(env_var, default):
     if env_var in os.environ:
