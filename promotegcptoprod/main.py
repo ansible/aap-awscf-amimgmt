@@ -108,9 +108,9 @@ def main():
     snapshot_date = env_set("INPUT_SNAPSHOT_DATE", "")
     log_filename = env_set("INPUT_LOG_FILENAME", "promotegcptoprod.log")
     prod_store_path = env_set("INPUT_GCP_PROD_STORAGE_PATH", "aap-aoc-code-assets")
-    gcloud_path = env_set("INPUT_GCLOUD_PATH", "/usr/local/bin/")
+    gcloud_path = env_set("INPUT_GCLOUD_PATH", "/opt/hostedtoolcache/gcloud/411.0.0/x64/bin/gcloud")
 
-    process = subprocess.run(["{}/gcloud".format(gcloud_path), "auth", "list"], capture_output=True, text=True)
+    process = subprocess.run(["{}".format(gcloud_path), "auth", "list"], capture_output=True, text=True)
     if (process.stdout != ''): print(process.stdout)
     if (process.stderr != ''): print(process.stderr)
     success = copyAssets(snapshot_path, snapshot_date, prod_store_path)
